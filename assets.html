@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {% if auto and auto|int > 0 %}
+  <meta http-equiv="refresh" content="{{ auto|int }}">
+  {% endif %}
+  <title>{{ SITE_TITLE }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* style.css を作らない場合の最低限デザイン */
+    :root { --bg:#0f1220; --card:#181c2f; --text:#e9ecff; --muted:#a2a8c7; --acc:#59e0b7; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif; background:linear-gradient(180deg,#0b0e18,#0f1220); color:var(--text) }
+    header{ padding:16px 20px; border-bottom:1px solid #22263b; display:flex; gap:12px; align-items:center; flex-wrap:wrap }
+    header a{ color:var(--acc); text-decoration:none }
+    .wrap{ max-width:980px; margin:20px auto; padding:0 16px }
+    .btn{ padding:6px 10px; border:1px solid #2a3150; border-radius:8px; color:var(--text); text-decoration:none }
+    .grid{ display:grid; grid-template-columns:1fr; gap:12px }
+    .card{ background:var(--card); border:1px solid #242a45; border-radius:14px; padding:16px; box-shadow:0 4px 12px rgba(0,0,0,.25) }
+    .meta{ color:var(--muted); font-size:12px; margin:8px 0 }
+    .pager{ display:flex; gap:8px; justify-content:center; margin:18px 0 }
+    @media (min-width:800px){ .grid{ grid-template-columns:1fr 1fr } }
+  </style>
+</head>
+<body>
+<header>
+  <h1 style="margin:0;font-size:20px">📰 {{ SITE_TITLE }}</h1>
+  <div class="filter">
+    <a class="btn {{ '' if source else 'active' }}" href="/?page=1&limit={{limit}}&auto={{auto}}">All</a>
+    <a class="btn {{ 'active' if source=='coindesk' else '' }}" href="/?source=coindesk&page=1&limit={{limit}}&auto={{auto}}">CoinDesk</a>
+    <a class="btn {{ 'active' if source=='coinpost' else '' }}" href="/?source=coinpost&page=1&limit={{limit}}&auto={{auto}}">CoinPost</a>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+    <a class="btn" href="/rss.xml">RSS</a>
+    <a class="btn" href="/news?limit={{limit}}{{ '&source='+source if source else '' }}">JSON</a>
+    <span style="color:#a2a8c7">Auto: {{auto}}s</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    {% if rows %}
+      {% for r in rows %}
+        <article class="card">
+          <h3 style="margin:0 0 6px;font-size:18px">
+            <a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.title }}</a>
+          </h3>
+          <div class="meta">{{ r.source }} ｜ {{ r.published_at.strftime('%Y-%m-%d %H:%M') }} UTC</div>
+          <div class="summary" style="white-space:pre-wrap;line-height:1.5">{{ r.summary_ja }}</div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <p>まだ記事がありません。数分後に自動更新されます。</p>
+    {% endif %}
+  </div>
+
+  <nav class="pager">
+    {% if page > 1 %}
+      <a class="btn" href="/?{% if source %}source={{source}}&{% endif %}page={{page-1}}&limit={{limit}}&auto={{auto}}">« Prev</a>
+    {% endif %}
+    <span style="padding:6px 10px;">{{page}} / {{ total_pages }}</span>
+    {% if page < total_pages %}
+      <a class="btn" href="/?{% if source %}source={{source}}&{% endif %}page={{page+1}}&limit={{limit}}&auto={{auto}}">Next »</a>
+    {% endif %}
+  </nav>
+</div>
+
+<footer style="color:#a2a8c7;font-size:12px;text-align:center;padding:24px 0 32px">
+  データ元: CoinDesk / CoinPost（要約は自動生成・投資判断は自己責任）
+</footer>
+</body>
+</html>
